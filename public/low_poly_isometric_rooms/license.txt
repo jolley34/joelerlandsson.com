@@ -1,0 +1,11 @@
+Model Information:
+* title:	Low Poly Isometric Rooms
+* source:	https://sketchfab.com/3d-models/low-poly-isometric-rooms-d53af0ad289a403598ee2cb41d84608b
+* author:	Brynn (https://sketchfab.com/Brynnnnn)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Low Poly Isometric Rooms" (https://sketchfab.com/3d-models/low-poly-isometric-rooms-d53af0ad289a403598ee2cb41d84608b) by Brynn (https://sketchfab.com/Brynnnnn) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
