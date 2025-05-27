@@ -445,7 +445,7 @@ export default function Scene() {
       </SecondSection>
 
       <ProjectsSection>
-        <SectionText>Highlights</SectionText>
+        <SectionText>projects</SectionText>
         <SectionContent>
           <a
             href="https://notflix-taupe.vercel.app/"
