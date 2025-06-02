@@ -9,28 +9,24 @@ import * as THREE from "three";
 // Styled Components
 const Container = styled.div`
   height: 100vh;
-  width: 100%;
   overflow-y: auto;
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   position: relative;
-  background-color: #87ceeb;
-  padding-top: env(safe-area-inset-top);
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
 `;
 
 const SceneWrapper = styled.div`
   width: 100%;
-  min-height: calc(100vh - env(safe-area-inset-top));
+  height: 100vh;
   background: linear-gradient(to bottom, #87ceeb, #5aaccd);
   scroll-snap-align: start;
   position: relative;
-  padding-top: env(safe-area-inset-top);
 `;
 
 const SecondSection = styled.div`
   width: 100%;
-  min-height: calc(100vh - env(safe-area-inset-top));
+  height: 100vh;
   background: linear-gradient(to bottom, #5aaccd, #2e5c7a);
   scroll-snap-align: start;
   position: relative;
@@ -43,7 +39,7 @@ const SecondSection = styled.div`
 
 const ContactSection = styled.div`
   width: 100%;
-  min-height: calc(100vh - env(safe-area-inset-top));
+  height: 100vh;
   background: linear-gradient(to bottom, #2e5c7a, #0a1c2e);
   scroll-snap-align: start;
   position: relative;
