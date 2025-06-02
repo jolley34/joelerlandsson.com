@@ -36,6 +36,21 @@ const SecondSection = styled.div`
   font-size: 2rem;
 `;
 
+const ContactSection = styled.div`
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(to bottom, #2e5c7a, #0a1c2e);
+  scroll-snap-align: start;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  padding: 2rem;
+  text-align: center;
+`;
+
 const SectionText = styled.h1`
   width: 100%;
   position: absolute;
@@ -86,46 +101,6 @@ const ScrollIconWrapper = styled.div`
   }
 `;
 
-const ProjectsSection = styled.div`
-  width: 100%;
-  height: 100vh;
-  background: linear-gradient(to bottom, #2e5c7a, #1b2f40);
-  scroll-snap-align: start;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  padding: 2rem;
-`;
-
-const ProjectCard = styled.div`
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 1rem;
-  padding: 2rem;
-  margin: 1rem;
-  width: 300px;
-  height: 200px;
-  text-align: center;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-`;
-
-const ContactSection = styled.div`
-  width: 100%;
-  height: 100vh;
-  background: linear-gradient(to bottom, #1b2f40, #0f1a25);
-  scroll-snap-align: start;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  padding: 2rem;
-  text-align: center;
-`;
-
 const ContactText = styled.h2`
   font-size: 2rem;
   margin-bottom: 1rem;
@@ -135,6 +110,7 @@ const ContactDetails = styled.p`
   font-size: 1.25rem;
   margin: 0.25rem 0;
   color: #d0e6f7;
+  font-weight: bold;
 `;
 
 const Icon = styled.div<{ atBottom: boolean }>`
@@ -157,17 +133,16 @@ function SceneModel() {
     uHoverStrength: { value: 0.05 },
     uHoverRadius: { value: 0.2 },
     uTexture: { value: null as THREE.Texture | null },
-    uAmbientLightColor: { value: new THREE.Color("#b3cde0") }, // Sky-blue ambient
-    uAmbientLightIntensity: { value: 0.5 }, // Softer ambient
-    uDirectionalLightColor: { value: new THREE.Color("#fff5e6") }, // Warm sunlight
+    uAmbientLightColor: { value: new THREE.Color("#b3cde0") },
+    uAmbientLightIntensity: { value: 0.5 },
+    uDirectionalLightColor: { value: new THREE.Color("#fff5e6") },
     uDirectionalLightDirection: {
       value: new THREE.Vector3(10, 20, 10).normalize(),
     },
-    uDirectionalLightIntensity: { value: 1.2 }, // Reduced intensity
-    uSpecularStrength: { value: 0.3 }, // For glossy highlights
+    uDirectionalLightIntensity: { value: 1.2 },
+    uSpecularStrength: { value: 0.3 },
   });
 
-  // Extract texture
   useEffect(() => {
     earthGltf.scene.traverse((child) => {
       if (
@@ -179,7 +154,6 @@ function SceneModel() {
     });
   }, [earthGltf]);
 
-  // Mouse move handler
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
       if (!isHovered) return;
@@ -206,7 +180,6 @@ function SceneModel() {
         uniforms.current.uHoverStrength.value = 0.0;
       }
 
-      // Smooth transition of rotation speed
       const targetSpeed = isHovered ? 0.001 : 0.004;
       rotationSpeed.current = THREE.MathUtils.lerp(
         rotationSpeed.current,
@@ -255,32 +228,22 @@ function SceneModel() {
     void main() {
       vec4 texColor = texture2D(uTexture, vUv);
 
-      // Ambient lighting
       vec3 ambient = uAmbientLightColor * uAmbientLightIntensity * texColor.rgb;
-
-      // Diffuse lighting
       vec3 norm = normalize(vNormal);
       float diff = max(dot(norm, uDirectionalLightDirection), 0.0);
       vec3 diffuse = uDirectionalLightColor * diff * uDirectionalLightIntensity * texColor.rgb;
-
-      // Specular lighting (Blinn-Phong)
       vec3 viewDir = normalize(-vPosition);
       vec3 halfDir = normalize(uDirectionalLightDirection + viewDir);
       float spec = pow(max(dot(norm, halfDir), 0.0), 32.0);
       vec3 specular = uDirectionalLightColor * spec * uSpecularStrength;
-
-      // Combine lighting contributions
       vec3 finalColor = ambient + diffuse + specular;
-
-      // Simple tone mapping
       finalColor = finalColor / (finalColor + vec3(1.0));
-      finalColor = pow(finalColor, vec3(1.0 / 2.2)); // Gamma correction
+      finalColor = pow(finalColor, vec3(1.0 / 2.2));
 
       gl_FragColor = vec4(finalColor, texColor.a);
     }
   `;
 
-  // Apply custom material
   useEffect(() => {
     earthGltf.scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -307,8 +270,10 @@ function SceneModel() {
 
 export default function Scene() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [atBottom, setAtBottom] = useState(false);
+  const [currentSection, setCurrentSection] = useState(0);
   const [wordSwap, setWordSwap] = useState(true);
+
+  const sections = ["home", "about", "contact"];
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -342,18 +307,28 @@ export default function Scene() {
 
     const handleScroll = () => {
       const scrollTop = container.scrollTop;
-      const maxScroll = container.scrollHeight - container.clientHeight;
-      setAtBottom(scrollTop >= maxScroll - 10);
+      const sectionHeight = window.innerHeight;
+      const sectionIndex = Math.round(scrollTop / sectionHeight);
+      setCurrentSection(
+        Math.min(Math.max(sectionIndex, 0), sections.length - 1)
+      );
     };
 
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [sections.length]);
 
-  const scrollTo = () => {
+  const scrollToSection = () => {
     if (containerRef.current) {
-      const scrollTarget = atBottom ? 0 : window.innerHeight;
-      containerRef.current.scrollTo({ top: scrollTarget, behavior: "smooth" });
+      const nextSection =
+        currentSection === sections.length - 1
+          ? 0
+          : Math.min(currentSection + 1, sections.length - 1);
+      containerRef.current.scrollTo({
+        top: nextSection * window.innerHeight,
+        behavior: "smooth",
+      });
+      setCurrentSection(nextSection);
     }
   };
 
@@ -444,45 +419,26 @@ export default function Scene() {
         </SectionContent>
       </SecondSection>
 
-      <ProjectsSection>
-        <SectionText>projects</SectionText>
-        <SectionContent>
-          <a
-            href="https://notflix-taupe.vercel.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ProjectCard>
-              <h2>Notflix</h2>
-              <p>A netflix copy built in Next.js</p>
-            </ProjectCard>
-          </a>
-
-          <a
-            href="https://jolley34.github.io/Mixcast/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ProjectCard>
-              <h2>Webshop</h2>
-              <p>A webshop inspired from Louis Vuitton. Built with Next.js</p>
-            </ProjectCard>
-          </a>
-        </SectionContent>
-      </ProjectsSection>
-
       <ContactSection>
         <SectionText>contact</SectionText>
         <ContactText>Let's get in touch!</ContactText>
-        <ContactDetails>Email: joel@example.com</ContactDetails>
         <ContactDetails>
-          LinkedIn: linkedin.com/in/joelerlandsson
+          <a href="mailto:erlandssonjoel@icloud.com">
+            erlandssonjoel@icloud.com
+          </a>
         </ContactDetails>
-        <ContactDetails>GitHub: github.com/joelerlandsson</ContactDetails>
+        <ContactDetails>
+          <a href="https://www.linkedin.com/in/joel-erlandsson-32500328a/">
+            LinkedIn
+          </a>
+        </ContactDetails>
+        <ContactDetails>
+          <a href="https://github.com/jolley34">GitHub</a>
+        </ContactDetails>
       </ContactSection>
 
-      <ScrollIconWrapper onClick={scrollTo}>
-        <Icon atBottom={atBottom}>
+      <ScrollIconWrapper onClick={scrollToSection}>
+        <Icon atBottom={currentSection === sections.length - 1}>
           <CaretDoubleDown size={32} weight="bold" />
         </Icon>
       </ScrollIconWrapper>
