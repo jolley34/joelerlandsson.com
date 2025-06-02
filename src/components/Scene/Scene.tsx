@@ -121,6 +121,14 @@ const Icon = styled.div<{ atBottom: boolean }>`
   will-change: transform;
 `;
 
+// Utility to detect mobile devices
+const isMobileDevice = () => {
+  return (
+    /iPad|iPhone|iPod|Android/i.test(navigator.userAgent) ||
+    window.innerWidth <= 768
+  );
+};
+
 function SceneModel() {
   const earthGltf = useGLTF("/low_poly_planet_earth/scene.gltf");
   const modelRef = useRef<THREE.Object3D>(null);
@@ -128,6 +136,7 @@ function SceneModel() {
   const mouse = useRef(new THREE.Vector2(0, 0));
   const raycaster = useRef(new THREE.Raycaster());
   const rotationSpeed = useRef(0.004);
+  const isMobile = isMobileDevice();
 
   const uniforms = useRef({
     uMouse: { value: new THREE.Vector3(0, 0, 0) },
@@ -156,37 +165,43 @@ function SceneModel() {
   }, [earthGltf]);
 
   useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      if (!isHovered) return;
-      mouse.current.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.current.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    };
+    if (!isMobile) {
+      const handleMouseMove = (event: MouseEvent) => {
+        if (!isHovered) return;
+        mouse.current.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.current.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [isHovered]);
+      window.addEventListener("mousemove", handleMouseMove);
+      return () => window.removeEventListener("mousemove", handleMouseMove);
+    }
+  }, [isHovered, isMobile]);
 
   useFrame(({ camera }) => {
     if (modelRef.current) {
-      raycaster.current.setFromCamera(mouse.current, camera);
-      const intersects = raycaster.current.intersectObject(
-        modelRef.current,
-        true
-      );
+      if (!isMobile) {
+        raycaster.current.setFromCamera(mouse.current, camera);
+        const intersects = raycaster.current.intersectObject(
+          modelRef.current,
+          true
+        );
 
-      if (intersects.length > 0 && isHovered) {
-        uniforms.current.uMouse.value.copy(intersects[0].point);
-        uniforms.current.uHoverStrength.value = 0.05;
+        if (intersects.length > 0 && isHovered) {
+          uniforms.current.uMouse.value.copy(intersects[0].point);
+          uniforms.current.uHoverStrength.value = 0.05;
+        } else {
+          uniforms.current.uHoverStrength.value = 0.0;
+        }
+
+        const targetSpeed = isHovered ? 0.001 : 0.004;
+        rotationSpeed.current = THREE.MathUtils.lerp(
+          rotationSpeed.current,
+          targetSpeed,
+          0.05
+        );
       } else {
-        uniforms.current.uHoverStrength.value = 0.0;
+        rotationSpeed.current = 0.004;
       }
-
-      const targetSpeed = isHovered ? 0.001 : 0.004;
-      rotationSpeed.current = THREE.MathUtils.lerp(
-        rotationSpeed.current,
-        targetSpeed,
-        0.05
-      );
 
       modelRef.current.rotation.y += rotationSpeed.current;
     }
@@ -262,8 +277,8 @@ function SceneModel() {
       <primitive
         object={earthGltf.scene}
         ref={modelRef}
-        onPointerOver={() => setIsHovered(true)}
-        onPointerOut={() => setIsHovered(false)}
+        onPointerOver={() => !isMobile && setIsHovered(true)}
+        onPointerOut={() => !isMobile && setIsHovered(false)}
       />
     </Center>
   );
@@ -273,7 +288,7 @@ export default function Scene() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentSection, setCurrentSection] = useState(0);
   const [wordSwap, setWordSwap] = useState(true);
-
+  const isMobile = isMobileDevice();
   const sections = ["home", "about", "contact"];
 
   useEffect(() => {
@@ -339,7 +354,6 @@ export default function Scene() {
         <h1 style={{ position: "absolute", top: 0, padding: "1rem 2rem" }}>
           joel erlandsson
         </h1>
-
         <SectionText>
           explore my wor
           <span
@@ -365,7 +379,6 @@ export default function Scene() {
             </AnimatePresence>
           </span>
         </SectionText>
-
         <Canvas camera={{ position: [0, 5, 5], fov: 50 }}>
           <ambientLight intensity={0.3} color="#b3cde0" />
           <directionalLight
@@ -385,15 +398,16 @@ export default function Scene() {
           <Suspense fallback={null}>
             <SceneModel />
           </Suspense>
-          <OrbitControls
-            enableZoom={false}
-            enablePan={false}
-            minPolarAngle={Math.PI / 4}
-            maxPolarAngle={Math.PI / 2}
-          />
+          {!isMobile && (
+            <OrbitControls
+              enableZoom={false}
+              enablePan={false}
+              minPolarAngle={Math.PI / 4}
+              maxPolarAngle={Math.PI / 2}
+            />
+          )}
         </Canvas>
       </SceneWrapper>
-
       <SecondSection>
         <SectionText>about</SectionText>
         <SectionContent>
@@ -419,7 +433,6 @@ export default function Scene() {
           </SlideshowWrapper>
         </SectionContent>
       </SecondSection>
-
       <ContactSection>
         <SectionText>contact</SectionText>
         <ContactText>Let's get in touch!</ContactText>
@@ -437,7 +450,6 @@ export default function Scene() {
           <a href="https://github.com/jolley34">GitHub</a>
         </ContactDetails>
       </ContactSection>
-
       <ScrollIconWrapper onClick={scrollToSection}>
         <Icon atBottom={currentSection === sections.length - 1}>
           <CaretDoubleDown size={32} weight="bold" />
