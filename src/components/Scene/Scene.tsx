@@ -149,7 +149,7 @@ function SceneModel() {
     uDirectionalLightDirection: {
       value: new THREE.Vector3(10, 20, 10).normalize(),
     },
-    uDirectionalLightIntensity: { value: 1.2 },
+    uDirectionalLightIntensity: { value: 3.5 },
     uSpecularStrength: { value: 0.3 },
   });
 
